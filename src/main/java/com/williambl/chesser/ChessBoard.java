@@ -11,6 +11,17 @@ public class ChessBoard {
         return Optional.ofNullable(pieces[position.x()][position.y()]);
     }
 
+    public void movePiece(ChessPiece piece, Vec2i destination) {
+        // TODO: handle taking pieces
+        if (destination.isInBounds()) {
+            var from = piece.position();
+            this.pieces[from.x()][from.y()] = null;
+            var taken = this.pieceAt(destination);
+            this.pieces[destination.x()][destination.y()] = piece;
+            piece.moveTo(destination);
+        }
+    }
+
     public Stream<Vec2i> raycast(Vec2i position, Vec2i offset, Predicate<Optional<ChessPiece>> takingPredicate) {
         return Stream.iterate(
                 position,

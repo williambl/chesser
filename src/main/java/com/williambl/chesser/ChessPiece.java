@@ -20,10 +20,14 @@ public sealed abstract class ChessPiece {
         return this.side;
     }
 
-    public abstract Stream<Vec2i> getLegalMoves(Vec2i pos, ChessBoard board);
+    public abstract Stream<Vec2i> getLegalMoves(ChessBoard board);
 
     public void moveTo(Vec2i position) {
         this.positionHistory.add(position);
+    }
+
+    public Vec2i position() {
+        return this.positionHistory.get(this.positionHistory.size()-1);
     }
 
     public static final class King extends ChessPiece {
@@ -32,16 +36,16 @@ public sealed abstract class ChessPiece {
         }
 
         @Override
-        public Stream<Vec2i> getLegalMoves(Vec2i pos, ChessBoard board) {
+        public Stream<Vec2i> getLegalMoves(ChessBoard board) {
             return Stream.of(
-                            pos.plus(-1, 1),
-                            pos.plus(0, 1),
-                            pos.plus(1, 1),
-                            pos.plus(-1, 0),
-                            pos.plus(1, 0),
-                            pos.plus(-1, -1),
-                            pos.plus(0, -1),
-                            pos.plus(1, -1)
+                            position().plus(-1, 1),
+                            position().plus(0, 1),
+                            position().plus(1, 1),
+                            position().plus(-1, 0),
+                            position().plus(1, 0),
+                            position().plus(-1, -1),
+                            position().plus(0, -1),
+                            position().plus(1, -1)
                     )
                     .filter(Optional::isPresent)
                     .map(Optional::get)
@@ -55,7 +59,7 @@ public sealed abstract class ChessPiece {
         }
 
         @Override
-        public Stream<Vec2i> getLegalMoves(Vec2i pos, ChessBoard board) {
+        public Stream<Vec2i> getLegalMoves(ChessBoard board) {
             return Stream.of(
                             new Vec2i(-1, 1),
                             new Vec2i(0, 1),
@@ -66,7 +70,7 @@ public sealed abstract class ChessPiece {
                             new Vec2i(0, -1),
                             new Vec2i(1, -1)
                     )
-                    .flatMap(offset -> board.raycast(pos, offset, canTakeOrIsEmpty))
+                    .flatMap(offset -> board.raycast(position(), offset, canTakeOrIsEmpty))
                     .filter(p -> canTakeOrIsEmpty.test(board.pieceAt(p)));
         }
     }
@@ -77,14 +81,14 @@ public sealed abstract class ChessPiece {
         }
 
         @Override
-        public Stream<Vec2i> getLegalMoves(Vec2i pos, ChessBoard board) {
+        public Stream<Vec2i> getLegalMoves(ChessBoard board) {
             return Stream.of(
                             new Vec2i(0, 1),
                             new Vec2i(-1, 0),
                             new Vec2i(1, 0),
                             new Vec2i(0, -1)
                     )
-                    .flatMap(offset -> board.raycast(pos, offset, canTakeOrIsEmpty))
+                    .flatMap(offset -> board.raycast(position(), offset, canTakeOrIsEmpty))
                     .filter(p -> canTakeOrIsEmpty.test(board.pieceAt(p)));
         }
     }
@@ -95,14 +99,14 @@ public sealed abstract class ChessPiece {
         }
 
         @Override
-        public Stream<Vec2i> getLegalMoves(Vec2i pos, ChessBoard board) {
+        public Stream<Vec2i> getLegalMoves(ChessBoard board) {
             return Stream.of(
                             new Vec2i(-1, 1),
                             new Vec2i(-1, -1),
                             new Vec2i(1, 1),
                             new Vec2i(1, -1)
                     )
-                    .flatMap(offset -> board.raycast(pos, offset, canTakeOrIsEmpty))
+                    .flatMap(offset -> board.raycast(position(), offset, canTakeOrIsEmpty))
                     .filter(p -> canTakeOrIsEmpty.test(board.pieceAt(p)));
         }
     }
@@ -113,16 +117,16 @@ public sealed abstract class ChessPiece {
         }
 
         @Override
-        public Stream<Vec2i> getLegalMoves(Vec2i pos, ChessBoard board) {
+        public Stream<Vec2i> getLegalMoves(ChessBoard board) {
             return Stream.of(
-                            pos.plus(-1, 2),
-                            pos.plus(1, 2),
-                            pos.plus(-1, -2),
-                            pos.plus(1, -2),
-                            pos.plus(2, -1),
-                            pos.plus(2, 1),
-                            pos.plus(-2, -1),
-                            pos.plus(-2, 1)
+                            position().plus(-1, 2),
+                            position().plus(1, 2),
+                            position().plus(-1, -2),
+                            position().plus(1, -2),
+                            position().plus(2, -1),
+                            position().plus(2, 1),
+                            position().plus(-2, -1),
+                            position().plus(-2, 1)
                     )
                     .filter(Optional::isPresent)
                     .map(Optional::get)
@@ -136,24 +140,24 @@ public sealed abstract class ChessPiece {
         }
 
         @Override
-        public Stream<Vec2i> getLegalMoves(Vec2i pos, ChessBoard board) {
+        public Stream<Vec2i> getLegalMoves(ChessBoard board) {
             Stream.Builder<Vec2i> builder = Stream.builder();
 
-            pos.plus(0, this.side() == ChessSide.WHITE ? 1 : -1)
+            position().plus(0, this.side() == ChessSide.WHITE ? 1 : -1)
                     .filter(p -> board.pieceAt(p).isEmpty())
                     .ifPresent(builder::add);
 
-            if (this.positionHistory.isEmpty()) {
-                pos.plus(0, this.side() == ChessSide.WHITE ? 2 : -2)
+            if (this.positionHistory.size() == 1) {
+                position().plus(0, this.side() == ChessSide.WHITE ? 2 : -2)
                         .filter(p -> board.pieceAt(p).isEmpty())
                         .ifPresent(builder::add);
             }
 
-            pos.plus(-1, this.side() == ChessSide.WHITE ? 1 : -1)
+            position().plus(-1, this.side() == ChessSide.WHITE ? 1 : -1)
                     .filter(p -> board.pieceAt(p).map(piece -> piece.side() != this.side()).orElse(false))
                     .ifPresent(builder::add);
 
-            pos.plus(1, this.side() == ChessSide.WHITE ? 1 : -1)
+            position().plus(1, this.side() == ChessSide.WHITE ? 1 : -1)
                     .filter(p -> board.pieceAt(p).map(piece -> piece.side() != this.side()).orElse(false))
                     .ifPresent(builder::add);
 

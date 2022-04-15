@@ -16,6 +16,10 @@ public record Vec2i(int x, int y) {
         return plus(offset.x(), offset.y());
     }
 
+    public boolean isInBounds() {
+        return isInBounds(this.x()) && isInBounds(this.y());
+    }
+
     public static boolean isInBounds(int position) {
         return position >= 0 && position <= 7;
     }
